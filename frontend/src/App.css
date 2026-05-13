@@ -1,38 +1,214 @@
-.App {
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f0f2f5;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 30px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+h1 {
+  color: #1e3a8a;
+  margin-bottom: 5px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.subtitle {
+  color: #555;
+  margin-bottom: 30px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.search-box {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 220px;
+  font-size: 16px;
+}
+
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  background-color: #2563eb;
   color: white;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.3s;
 }
 
-.App-link {
-  color: #61dafb;
+button:hover {
+  background-color: #1d4ed8;
 }
 
-@keyframes App-logo-spin {
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.info {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.info-box {
+  background: #eff6ff;
+  padding: 15px;
+  border-radius: 10px;
+  width: 220px;
+  margin: 10px;
+}
+
+.info-box h3 {
+  margin: 0;
+  color: #1e40af;
+}
+
+.info-box p {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.movimientos {
+
+  margin-top: 30px;
+
+  text-align: left;
+
+}
+
+.movimiento-item {
+
+  background: #f8fafc;
+
+  padding: 18px;
+
+  margin-bottom: 15px;
+
+  border-radius: 12px;
+
+  border-left: 6px solid #2563eb;
+
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.08);
+
+}
+
+.movimiento-header {
+
+  margin-bottom: 10px;
+
+}
+
+.movimiento-titulo {
+
+  margin: 0;
+
+  color: #1e3a8a;
+
+  font-size: 18px;
+
+  letter-spacing: 1px;
+
+}
+
+.movimiento-body {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  flex-wrap: wrap;
+
+}
+
+.movimiento-body p {
+
+  margin: 5px 0;
+
+  color: #374151;
+
+  font-size: 15px;
+
+}
+
+.mensaje {
+
+  padding: 14px;
+
+  border-radius: 10px;
+
+  margin-bottom: 20px;
+
+  font-weight: bold;
+
+  text-align: center;
+
+  animation: aparecer 0.3s ease;
+
+}
+
+.success {
+
+  background: #dcfce7;
+
+  color: #166534;
+
+  border: 1px solid #22c55e;
+
+}
+
+.error {
+
+  background: #fee2e2;
+
+  color: #991b1b;
+
+  border: 1px solid #ef4444;
+
+}
+
+@keyframes aparecer {
+
   from {
-    transform: rotate(0deg);
+
+    opacity: 0;
+    transform: translateY(-5px);
+
   }
+
   to {
-    transform: rotate(360deg);
+
+    opacity: 1;
+    transform: translateY(0);
+
   }
+
+}
+
+.actions {
+  margin-top: 25px;
+}
+
+.actions input {
+  margin-right: 10px;
+}
+
+.chart-container {
+  margin-top: 30px;
 }
