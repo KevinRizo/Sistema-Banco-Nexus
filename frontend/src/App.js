@@ -32,6 +32,7 @@ function App() {
   const [cuentaDestino, setCuentaDestino] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [tipoMensaje, setTipoMensaje] = useState('');
+  const [sucursal, setSucursal] = useState('CDMX');
 
   // CONSULTAR CUENTA
 
@@ -42,6 +43,8 @@ function App() {
       if (!cuenta) {
 
         setMensaje('Ingresa un número de cuenta');
+
+        setTipoMensaje('error');
 
         return;
 
@@ -55,21 +58,9 @@ function App() {
 
       if (data.mensaje) {
 
-        if (respuesta.ok) {
+        setMensaje(data.mensaje);
 
-          setMensaje(
-            'Transferencia realizada exitosamente'
-          );
-
-          setTipoMensaje('success');
-
-        } else {
-
-          setMensaje(` ${data.mensaje}`);
-
-          setTipoMensaje('error');
-
-        }
+        setTipoMensaje('error');
 
         return;
 
@@ -77,13 +68,19 @@ function App() {
 
       setDatos(data);
 
-      setMensaje('');
+      setTimeout(() => {
+
+        setMensaje('');
+
+      }, 3000);
 
     } catch (error) {
 
       console.log(error);
 
       setMensaje('Error al consultar cuenta');
+
+      setTipoMensaje('error');
 
     }
 
@@ -101,11 +98,13 @@ function App() {
           'Ingresa un monto válido'
         );
 
+        setTipoMensaje('error');
+
         return;
 
       }
 
-      await fetch(
+      const respuesta = await fetch(
         'http://localhost:3000/api/deposito',
         {
 
@@ -117,21 +116,34 @@ function App() {
 
           body: JSON.stringify({
             cuenta: cuenta,
-            monto: Number(monto)
+            monto: Number(monto),
+            sucursal: sucursal
           })
 
         }
       );
 
-      consultarCuenta();
+      const data = await respuesta.json();
 
-      setMonto('');
+      if (respuesta.ok) {
 
-      setMensaje(
-        'Depósito realizado exitosamente'
-      );
+        setMonto('');
 
-      setTipoMensaje('success');
+        setMensaje(
+          'Depósito realizado exitosamente'
+        );
+
+        setTipoMensaje('success');
+
+        consultarCuenta();
+
+      } else {
+
+        setMensaje(data.mensaje);
+
+        setTipoMensaje('error');
+
+      }
 
     } catch (error) {
 
@@ -175,7 +187,8 @@ function App() {
 
           body: JSON.stringify({
             cuenta: cuenta,
-            monto: Number(monto)
+            monto: Number(monto),
+            sucursal: sucursal
           })
 
         }
@@ -183,7 +196,6 @@ function App() {
 
       const data = await respuesta.json();
 
-      // SI salió bien
       if (respuesta.ok) {
 
         setMensaje(
@@ -192,13 +204,12 @@ function App() {
 
         setTipoMensaje('success');
 
-        consultarCuenta();
-
         setMonto('');
+
+        consultarCuenta();
 
       } else {
 
-        // SI hubo error backend
         setMensaje(`${data.mensaje}`);
 
         setTipoMensaje('error');
@@ -231,6 +242,8 @@ function App() {
           'Ingresa un monto válido'
         );
 
+        setTipoMensaje('error');
+
         return;
 
       }
@@ -241,6 +254,8 @@ function App() {
           'Ingresa cuenta destino'
         );
 
+        setTipoMensaje('error');
+
         return;
 
       }
@@ -250,6 +265,8 @@ function App() {
         setMensaje(
           'No puedes transferir a la misma cuenta'
         );
+
+        setTipoMensaje('error');
 
         return;
 
@@ -268,7 +285,8 @@ function App() {
           body: JSON.stringify({
             cuentaOrigen: cuenta,
             cuentaDestino: cuentaDestino,
-            monto: Number(monto)
+            monto: Number(monto),
+            sucursal: sucursal
           })
 
         }
@@ -278,13 +296,18 @@ function App() {
 
       setMensaje(data.mensaje);
 
-      // SOLO actualizar si salió bien
       if (respuesta.ok) {
+
+        setTipoMensaje('success');
 
         consultarCuenta();
 
         setMonto('');
         setCuentaDestino('');
+
+      } else {
+
+        setTipoMensaje('error');
 
       }
 
@@ -295,6 +318,8 @@ function App() {
       setMensaje(
         'Error en transferencia'
       );
+
+      setTipoMensaje('error');
 
     }
 
@@ -308,7 +333,6 @@ function App() {
 
     let saldoActual = datos.saldo;
 
-    // Agregar saldo inicial
     saldoHistorico.push(saldoActual);
 
     const movimientosInvertidos = [...datos.transacciones].reverse();
@@ -470,6 +494,29 @@ function App() {
               onChange={(e) => setMonto(e.target.value)}
             />
 
+            <div className="sucursal-box">
+
+              <label>Sucursal:</label>
+
+              <select
+                value={sucursal}
+                onChange={(e) => setSucursal(e.target.value)}
+              >
+
+                <option value="CDMX">CDMX</option>
+
+                <option value="GDL">GDL</option>
+
+                <option value="MTY">MTY</option>
+
+                <option value="La Paz">La Paz</option>
+
+                <option value="Cancun">Cancún</option>
+
+              </select>
+
+            </div>
+
             <input
               type="text"
               placeholder="Cuenta destino"
@@ -553,6 +600,16 @@ function App() {
 
                   </p>
 
+                  <p>
+
+                    <strong>Sucursal:</strong>
+
+                    {' '}
+
+                    {movimiento.sucursal}
+
+                  </p>
+
                 </div>
 
               </div>
@@ -572,3 +629,4 @@ function App() {
 }
 
 export default App;
+
