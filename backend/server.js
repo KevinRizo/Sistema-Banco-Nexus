@@ -118,7 +118,7 @@ app.post('/api/deposito', async (req, res) => {
 
     try {
 
-        const { cuenta, monto } = req.body;
+        const { cuenta, monto, sucursal } = req.body;
 
         if (!cuenta || !monto) {
 
@@ -160,10 +160,17 @@ app.post('/api/deposito', async (req, res) => {
 
         // Registrar transacción
         await db.collection('transacciones').insertOne({
+
             numeroCuenta: cuenta,
+
             tipo: 'deposito',
+
             monto: monto,
+
+            sucursal: sucursal || 'Sucursal Principal',
+
             fecha: new Date()
+
         });
 
         // Respuesta
@@ -189,7 +196,7 @@ app.post('/api/retiro', async (req, res) => {
 
     try {
 
-        const { cuenta, monto } = req.body;
+        const { cuenta, monto, sucursal } = req.body;
 
         if (!cuenta || !monto) {
 
@@ -240,10 +247,17 @@ app.post('/api/retiro', async (req, res) => {
 
         // Registrar transacción
         await db.collection('transacciones').insertOne({
+
             numeroCuenta: cuenta,
+
             tipo: 'retiro',
+
             monto: monto,
+
+            sucursal: sucursal || 'Sucursal Principal',
+
             fecha: new Date()
+
         });
 
         // Respuesta
@@ -271,7 +285,8 @@ app.post('/api/transferencia', async (req, res) => {
         const {
             cuentaOrigen,
             cuentaDestino,
-            monto
+            monto,
+            sucursal
         } = req.body;
 
         if (
@@ -344,18 +359,32 @@ app.post('/api/transferencia', async (req, res) => {
 
         // Registrar movimiento origen
         await db.collection('transacciones').insertOne({
+
             numeroCuenta: cuentaOrigen,
+
             tipo: 'transferencia enviada',
+
             monto: monto,
+
+            sucursal: sucursal || 'Sucursal Principal',
+
             fecha: new Date()
+
         });
 
         // Registrar movimiento destino
         await db.collection('transacciones').insertOne({
+
             numeroCuenta: cuentaDestino,
+
             tipo: 'transferencia recibida',
+
             monto: monto,
+
+            sucursal: sucursal || 'Sucursal Principal',
+
             fecha: new Date()
+
         });
 
         res.json({
@@ -373,4 +402,3 @@ app.post('/api/transferencia', async (req, res) => {
     }
 
 });
-
