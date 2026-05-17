@@ -14,75 +14,86 @@ async function crearBaseDeDatos() {
 
         const db = client.db('BancoNexus');
 
-        // Limpiar colecciones anteriores
+        // LIMPIAR COLECCIONES
 
         await db.collection('clientes').deleteMany({});
         await db.collection('cuentas').deleteMany({});
         await db.collection('transacciones').deleteMany({});
 
         // CLIENTES
-  
+
         const clientes = [
+
             {
                 nombre: 'Juan Pérez',
                 curp: 'PEPJ010101HDFRRN01',
                 telefono: '6121111111',
                 correo: 'juan@gmail.com'
             },
+
             {
                 nombre: 'María López',
                 curp: 'LOMM020202MDFPRR02',
                 telefono: '6122222222',
                 correo: 'maria@gmail.com'
             },
+
             {
                 nombre: 'Carlos Ramírez',
                 curp: 'RACR030303HDFMRR03',
                 telefono: '6123333333',
                 correo: 'carlos@gmail.com'
             },
+
             {
                 nombre: 'Ana Torres',
                 curp: 'TOAA040404MDFRNS04',
                 telefono: '6124444444',
                 correo: 'ana@gmail.com'
             },
+
             {
                 nombre: 'Luis Hernández',
                 curp: 'HELL050505HDFRRS05',
                 telefono: '6125555555',
                 correo: 'luis@gmail.com'
             },
+
             {
                 nombre: 'Sofía Castro',
                 curp: 'CASS060606MDFTRF06',
                 telefono: '6126666666',
                 correo: 'sofia@gmail.com'
             },
+
             {
                 nombre: 'Diego Flores',
                 curp: 'FLOD070707HDFLRG07',
                 telefono: '6127777777',
                 correo: 'diego@gmail.com'
             },
+
             {
                 nombre: 'Fernanda Ruiz',
                 curp: 'RUFN080808MDFZRD08',
                 telefono: '6128888888',
                 correo: 'fernanda@gmail.com'
             },
+
             {
                 nombre: 'Miguel Sánchez',
                 curp: 'SAMM090909HDFNCL09',
                 telefono: '6129999999',
                 correo: 'miguel@gmail.com'
             },
+
             {
                 nombre: 'Valeria Gómez',
                 curp: 'GOVV101010MDFMRS10',
                 telefono: '6121010101',
                 correo: 'valeria@gmail.com'
             }
+
         ];
 
         const resultadoClientes = await db
@@ -93,15 +104,16 @@ async function crearBaseDeDatos() {
 
         // CUENTAS
 
-        const clientesIds = Object.values(
-            resultadoClientes.insertedIds
-        );
-
         const cuentas = clientes.map((cliente, index) => ({
+
             numeroCuenta: `${1001 + index}`,
+
             clienteCURP: cliente.curp,
+
             saldo: Math.floor(Math.random() * 10000) + 1000,
+
             tipo: 'Debito'
+
         }));
 
         const resultadoCuentas = await db
@@ -112,27 +124,53 @@ async function crearBaseDeDatos() {
 
         // TRANSACCIONES
 
-        const cuentasIds = Object.values(
-            resultadoCuentas.insertedIds
-        );
+        const sucursales = [
+            'CDMX',
+            'GDL',
+            'MTY',
+            'La Paz',
+            'Sonora'
+        ];
+
+        const tipos = [
+            'deposito',
+            'retiro'
+        ];
 
         const transacciones = [];
 
-        cuentasIds.forEach((cuentaId) => {
+        cuentas.forEach((cuenta) => {
 
-            transacciones.push({
-                cuentaId: cuentaId,
-                tipo: 'deposito',
-                monto: Math.floor(Math.random() * 5000) + 500,
-                fecha: new Date()
-            });
+            for (let i = 0; i < 3; i++) {
 
-            transacciones.push({
-                cuentaId: cuentaId,
-                tipo: 'retiro',
-                monto: Math.floor(Math.random() * 2000) + 200,
-                fecha: new Date()
-            });
+                const tipoAleatorio =
+                    tipos[Math.floor(Math.random() * tipos.length)];
+
+                const montoAleatorio =
+                    Math.floor(Math.random() * 5000) + 500;
+
+                const sucursalAleatoria =
+                    sucursales[
+                        Math.floor(Math.random() * sucursales.length)
+                    ];
+
+                transacciones.push({
+
+                    numeroCuenta: cuenta.numeroCuenta,
+
+                    clienteCURP: cuenta.clienteCURP,
+
+                    tipo: tipoAleatorio,
+
+                    monto: montoAleatorio,
+
+                    sucursal: sucursalAleatoria,
+
+                    fecha: new Date()
+
+                });
+
+            }
 
         });
 
@@ -157,3 +195,4 @@ async function crearBaseDeDatos() {
 }
 
 crearBaseDeDatos();
+
