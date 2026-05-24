@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-const uri = 'mongodb://localhost:27017';
+const uri = 'mongodb://127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/BancoNexus?replicaSet=rsBanco';
 
 const client = new MongoClient(uri);
 
@@ -129,7 +129,7 @@ async function crearBaseDeDatos() {
             'GDL',
             'MTY',
             'La Paz',
-            'Sonora'
+            'Cancun'
         ];
 
         const tipos = [
