@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import './App.css';
 
 import {
@@ -27,11 +28,17 @@ ChartJS.register(
 function App() {
 
   const [cuenta, setCuenta] = useState('');
+
   const [datos, setDatos] = useState(null);
+
   const [monto, setMonto] = useState('');
+
   const [cuentaDestino, setCuentaDestino] = useState('');
+
   const [mensaje, setMensaje] = useState('');
+
   const [tipoMensaje, setTipoMensaje] = useState('');
+
   const [sucursal, setSucursal] = useState('CDMX');
 
   // CONSULTAR CUENTA
@@ -50,15 +57,41 @@ function App() {
 
       }
 
+      const inicio = Date.now();
+
       const respuesta = await fetch(
         `http://localhost:3000/api/cuenta/${cuenta}`
       );
 
+      const fin = Date.now();
+
+      const tiempoRespuesta = fin - inicio;
+
+      if (tiempoRespuesta > 3000) {
+
+        setMensaje(
+          'Alta latencia detectada en el servidor'
+        );
+
+        setTipoMensaje('error');
+
+      }
+
       const data = await respuesta.json();
 
-      if (data.mensaje) {
+      if (!respuesta.ok) {
 
-        setMensaje(data.mensaje);
+        if (respuesta.status >= 500) {
+
+          setMensaje(
+            'Servidor no disponible o nodo primario caido'
+          );
+
+        } else {
+
+          setMensaje(data.mensaje);
+
+        }
 
         setTipoMensaje('error');
 
@@ -68,17 +101,23 @@ function App() {
 
       setDatos(data);
 
-      setTimeout(() => {
+      if (tiempoRespuesta <= 3000) {
 
-        setMensaje('');
+        setMensaje(
+          'Cuenta consultada correctamente'
+        );
 
-      }, 3000);
+        setTipoMensaje('success');
+
+      }
 
     } catch (error) {
 
       console.log(error);
 
-      setMensaje('Error al consultar cuenta');
+      setMensaje(
+        'Servidor no disponible o nodo primario caido'
+      );
 
       setTipoMensaje('error');
 
@@ -94,9 +133,7 @@ function App() {
 
       if (!monto || monto <= 0) {
 
-        setMensaje(
-          'Ingresa un monto válido'
-        );
+        setMensaje('Ingresa un monto válido');
 
         setTipoMensaje('error');
 
@@ -127,15 +164,13 @@ function App() {
 
       if (respuesta.ok) {
 
+        consultarCuenta();
+
         setMonto('');
 
-        setMensaje(
-          'Depósito realizado exitosamente'
-        );
+        setMensaje(data.mensaje);
 
         setTipoMensaje('success');
-
-        consultarCuenta();
 
       } else {
 
@@ -149,7 +184,9 @@ function App() {
 
       console.log(error);
 
-      setMensaje('Error al depositar');
+      setMensaje(
+        'Servidor no disponible o nodo primario caido'
+      );
 
       setTipoMensaje('error');
 
@@ -165,9 +202,7 @@ function App() {
 
       if (!monto || monto <= 0) {
 
-        setMensaje(
-          'Ingresa un monto válido'
-        );
+        setMensaje('Ingresa un monto válido');
 
         setTipoMensaje('error');
 
@@ -198,19 +233,17 @@ function App() {
 
       if (respuesta.ok) {
 
-        setMensaje(
-          'Retiro realizado exitosamente'
-        );
-
-        setTipoMensaje('success');
+        consultarCuenta();
 
         setMonto('');
 
-        consultarCuenta();
+        setMensaje(data.mensaje);
+
+        setTipoMensaje('success');
 
       } else {
 
-        setMensaje(`${data.mensaje}`);
+        setMensaje(data.mensaje);
 
         setTipoMensaje('error');
 
@@ -221,7 +254,7 @@ function App() {
       console.log(error);
 
       setMensaje(
-        'Error al retirar'
+        'Servidor no disponible o nodo primario caido'
       );
 
       setTipoMensaje('error');
@@ -238,9 +271,7 @@ function App() {
 
       if (!monto || monto <= 0) {
 
-        setMensaje(
-          'Ingresa un monto válido'
-        );
+        setMensaje('Ingresa un monto válido');
 
         setTipoMensaje('error');
 
@@ -250,9 +281,7 @@ function App() {
 
       if (!cuentaDestino) {
 
-        setMensaje(
-          'Ingresa cuenta destino'
-        );
+        setMensaje('Ingresa cuenta destino');
 
         setTipoMensaje('error');
 
@@ -294,18 +323,21 @@ function App() {
 
       const data = await respuesta.json();
 
-      setMensaje(data.mensaje);
-
       if (respuesta.ok) {
-
-        setTipoMensaje('success');
 
         consultarCuenta();
 
         setMonto('');
+
         setCuentaDestino('');
 
+        setMensaje(data.mensaje);
+
+        setTipoMensaje('success');
+
       } else {
+
+        setMensaje(data.mensaje);
 
         setTipoMensaje('error');
 
@@ -316,7 +348,7 @@ function App() {
       console.log(error);
 
       setMensaje(
-        'Error en transferencia'
+        'Servidor no disponible o nodo primario caido'
       );
 
       setTipoMensaje('error');
@@ -325,7 +357,7 @@ function App() {
 
   };
 
-  // DATOS GRAFICA
+  // GRAFICA
 
   const saldoHistorico = [];
 
@@ -335,7 +367,8 @@ function App() {
 
     saldoHistorico.push(saldoActual);
 
-    const movimientosInvertidos = [...datos.transacciones].reverse();
+    const movimientosInvertidos =
+      [...datos.transacciones].reverse();
 
     movimientosInvertidos.forEach((movimiento) => {
 
@@ -360,14 +393,19 @@ function App() {
     });
 
     saldoHistorico.reverse();
+
   }
 
   const data = {
 
     labels: datos
-      ? ['Saldo Inicial', ...datos.transacciones.map(
-        (_, index) => `Movimiento ${index + 1}`
-      )]
+      ? [
+          'Saldo Inicial',
+          ...datos.transacciones.map(
+            (_, index) =>
+              `Movimiento ${index + 1}`
+          )
+        ]
       : [],
 
     datasets: [
@@ -378,43 +416,20 @@ function App() {
 
         borderColor: '#2563eb',
 
-        backgroundColor: 'rgba(37, 99, 235, 0.2)',
+        backgroundColor:
+          'rgba(37, 99, 235, 0.2)',
 
         tension: 0.4,
 
-        fill: true,
-
-        pointBackgroundColor: '#1d4ed8',
-
-        pointBorderColor: '#ffffff',
-
-        pointRadius: 5,
-
-        pointHoverRadius: 7
+        fill: true
       }
     ]
 
   };
 
-  // OPCIONES GRAFICA
-
   const options = {
 
-    responsive: true,
-
-    plugins: {
-
-      legend: {
-
-        labels: {
-
-          color: '#1e3a8a'
-
-        }
-
-      }
-
-    }
+    responsive: true
 
   };
 
@@ -444,7 +459,9 @@ function App() {
           type="text"
           placeholder="Número de cuenta"
           value={cuenta}
-          onChange={(e) => setCuenta(e.target.value)}
+          onChange={(e) =>
+            setCuenta(e.target.value)
+          }
         />
 
         <button onClick={consultarCuenta}>
@@ -487,41 +504,61 @@ function App() {
 
           <div className="actions">
 
-            <input
-              type="number"
-              placeholder="Monto"
-              value={monto}
-              onChange={(e) => setMonto(e.target.value)}
-            />
-
             <div className="sucursal-box">
 
-              <label>Sucursal:</label>
+              <label className="sucursal-label">
+
+                Selecciona la sucursal bancaria:
+
+              </label>
 
               <select
                 value={sucursal}
-                onChange={(e) => setSucursal(e.target.value)}
+                onChange={(e) =>
+                  setSucursal(e.target.value)
+                }
               >
 
-                <option value="CDMX">CDMX</option>
+                <option value="CDMX">
+                  Sucursal CDMX
+                </option>
 
-                <option value="GDL">GDL</option>
+                <option value="Guadalajara">
+                  Sucursal Guadalajara
+                </option>
 
-                <option value="MTY">MTY</option>
+                <option value="Monterrey">
+                  Sucursal Monterrey
+                </option>
 
-                <option value="La Paz">La Paz</option>
+                <option value="La Paz">
+                  Sucursal La Paz
+                </option>
 
-                <option value="Cancun">Cancún</option>
+                <option value="Cancun">
+                  Sucursal Cancun
+                </option>
 
               </select>
 
             </div>
 
             <input
+              type="number"
+              placeholder="Monto"
+              value={monto}
+              onChange={(e) =>
+                setMonto(e.target.value)
+              }
+            />
+
+            <input
               type="text"
               placeholder="Cuenta destino"
               value={cuentaDestino}
-              onChange={(e) => setCuentaDestino(e.target.value)}
+              onChange={(e) =>
+                setCuentaDestino(e.target.value)
+              }
             />
 
             <button onClick={depositar}>
@@ -529,18 +566,19 @@ function App() {
             </button>
 
             <button
+              className="btn-retirar"
               onClick={retirar}
-              style={{ marginLeft: '10px' }}
             >
               Retirar
             </button>
 
-            <button
-              onClick={transferir}
-              style={{ marginLeft: '10px' }}
-            >
-              Transferir
-            </button>
+            <div style={{ marginTop: '15px' }}>
+
+              <button onClick={transferir}>
+                Transferir
+              </button>
+
+            </div>
 
           </div>
 
@@ -559,62 +597,64 @@ function App() {
 
             <h2>Historial de Movimientos</h2>
 
-            {datos.transacciones.map((movimiento, index) => (
+            {datos.transacciones.map(
+              (movimiento, index) => (
 
-              <div
-                key={index}
-                className="movimiento-item"
-              >
+                <div
+                  key={index}
+                  className="movimiento-item"
+                >
 
-                <div className="movimiento-header">
+                  <div className="movimiento-header">
 
-                  <h3 className="movimiento-titulo">
+                    <h3 className="movimiento-titulo">
 
-                    {movimiento.tipo.toUpperCase()}
+                      {movimiento.tipo.toUpperCase()}
 
-                  </h3>
+                    </h3>
+
+                  </div>
+
+                  <div className="movimiento-body">
+
+                    <p>
+
+                      <strong>Monto:</strong>
+
+                      {' '}
+
+                      ${movimiento.monto}
+
+                    </p>
+
+                    <p>
+
+                      <strong>Sucursal:</strong>
+
+                      {' '}
+
+                      {movimiento.sucursal}
+
+                    </p>
+
+                    <p>
+
+                      <strong>Fecha:</strong>
+
+                      {' '}
+
+                      {new Date(
+                        movimiento.fecha
+                      ).toLocaleDateString()}
+
+                    </p>
+
+                  </div>
 
                 </div>
 
-                <div className="movimiento-body">
-
-                  <p>
-
-                    <strong>Monto:</strong>
-
-                    {' '}
-
-                    ${movimiento.monto}
-
-                  </p>
-
-                  <p>
-
-                    <strong>Fecha:</strong>
-
-                    {' '}
-
-                    {new Date(
-                      movimiento.fecha
-                    ).toLocaleDateString()}
-
-                  </p>
-
-                  <p>
-
-                    <strong>Sucursal:</strong>
-
-                    {' '}
-
-                    {movimiento.sucursal}
-
-                  </p>
-
-                </div>
-
-              </div>
-
-            ))}
+              )
+            )}
 
           </div>
 
