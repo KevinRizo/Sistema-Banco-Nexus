@@ -563,7 +563,7 @@ app.get('/api/perfil', verificarToken, async (req, res) => {
 
             await registrarAuditoria(
 
-                correo,
+                req.usuario.correo,
 
                 'LOGIN',
 
@@ -625,6 +625,10 @@ app.put('/api/perfil', verificarToken, async (req, res) => {
 
         } = req.body;
 
+        console.log('Usuario token:', req.usuario);
+
+        console.log('Correo recibido:', correo);
+
         if (!nombre || !nombre.trim()) {
 
             return res.status(400).json({
@@ -659,6 +663,40 @@ app.put('/api/perfil', verificarToken, async (req, res) => {
 
                 mensaje:
                     'Correo inválido'
+
+            });
+
+        }
+        
+        console.log('Buscando correo duplicado...');
+
+        const correoExistente =
+            await db.collection('usuarios')
+                .findOne({
+
+                    correo,
+
+                    _id: {
+                        $ne: new ObjectId(
+                            req.usuario.id
+                        )
+                    }
+
+                });
+
+        
+
+        console.log(
+            'Resultado correoExistente:',
+            correoExistente
+        );
+
+        if (correoExistente) {
+
+            return res.status(400).json({
+
+                mensaje:
+                    'El correo ya está registrado'
 
             });
 
