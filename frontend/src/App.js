@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import Login from './Login';
+import Register from './Register';
+import { apiUrl } from './api';
+
+import { useState, useEffect } from 'react';
 
 import './App.css';
 
@@ -27,6 +31,18 @@ ChartJS.register(
 
 function App() {
 
+  const [alias, setAlias] = useState('');
+
+  const [cuentaBeneficiario, setCuentaBeneficiario] = useState('');
+
+  const [beneficiarios, setBeneficiarios] = useState([]);
+
+  const [mostrarPerfil, setMostrarPerfil] = useState(false);
+
+  const [nuevoNombre, setNuevoNombre] = useState('');
+
+  const [nuevoCorreo, setNuevoCorreo] = useState('');
+
   const [cuenta, setCuenta] = useState('');
 
   const [datos, setDatos] = useState(null);
@@ -41,9 +57,76 @@ function App() {
 
   const [sucursal, setSucursal] = useState('CDMX');
 
+  const [usuario, setUsuario] = useState(
+    JSON.parse(
+      localStorage.getItem('usuario')
+    )
+  );
+
+  const [mostrarRegistro,
+    setMostrarRegistro] =
+    useState(false);
+
+  useEffect(() => {
+
+    if (usuario?.numeroCuenta) {
+
+      setCuenta(
+        usuario.numeroCuenta
+      );
+
+    }
+
+  }, [usuario]);
+
+  useEffect(() => {
+
+    if (usuario) {
+
+      setNuevoNombre(
+        usuario.nombre
+      );
+
+      setNuevoCorreo(
+        usuario.correo
+      );
+
+    }
+
+  }, [usuario]);
+
+  useEffect(() => {
+
+    if (usuario?.numeroCuenta) {
+
+      consultarCuenta(
+        usuario.numeroCuenta
+      );
+
+      cargarBeneficiarios();
+
+    }
+
+  }, [usuario]);
+
+  const mostrarMensaje = (texto, tipo) => {
+
+    setMensaje(texto);
+
+    setTipoMensaje(tipo);
+
+    setTimeout(() => {
+
+      setMensaje('');
+
+      setTipoMensaje('');
+
+    }, 4000);
+
+  };
   // CONSULTAR CUENTA
 
-  const consultarCuenta = async () => {
+  const consultarCuenta = async (cuentaConsulta = cuenta) => {
 
     try {
 
@@ -60,7 +143,7 @@ function App() {
       const inicio = Date.now();
 
       const respuesta = await fetch(
-        `http://localhost:3000/api/cuenta/${cuenta}`
+        apiUrl(`/api/cuenta/${cuentaConsulta}`)
       );
 
       const fin = Date.now();
@@ -101,15 +184,6 @@ function App() {
 
       setDatos(data);
 
-      if (tiempoRespuesta <= 3000) {
-
-        setMensaje(
-          'Cuenta consultada correctamente'
-        );
-
-        setTipoMensaje('success');
-
-      }
 
     } catch (error) {
 
@@ -131,6 +205,9 @@ function App() {
 
     try {
 
+      const token =
+        localStorage.getItem('token');
+
       if (!monto || monto <= 0) {
 
         setMensaje('Ingresa un monto válido');
@@ -142,19 +219,25 @@ function App() {
       }
 
       const respuesta = await fetch(
-        'http://localhost:3000/api/deposito',
+        apiUrl('/api/deposito'),
         {
 
           method: 'POST',
 
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+
+            Authorization:
+              `Bearer ${token}`
+
           },
 
           body: JSON.stringify({
-            cuenta: cuenta,
+
             monto: Number(monto),
+
             sucursal: sucursal
+
           })
 
         }
@@ -164,19 +247,21 @@ function App() {
 
       if (respuesta.ok) {
 
-        consultarCuenta();
+        await consultarCuenta();
 
         setMonto('');
 
-        setMensaje(data.mensaje);
-
-        setTipoMensaje('success');
+        mostrarMensaje(
+          data.mensaje,
+          'success'
+        );
 
       } else {
 
-        setMensaje(data.mensaje);
-
-        setTipoMensaje('error');
+        mostrarMensaje(
+          data.mensaje,
+          'error'
+        );
 
       }
 
@@ -200,6 +285,9 @@ function App() {
 
     try {
 
+      const token =
+        localStorage.getItem('token');
+
       if (!monto || monto <= 0) {
 
         setMensaje('Ingresa un monto válido');
@@ -211,19 +299,25 @@ function App() {
       }
 
       const respuesta = await fetch(
-        'http://localhost:3000/api/retiro',
+        apiUrl('/api/retiro'),
         {
 
           method: 'POST',
 
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+
+            Authorization:
+              `Bearer ${token}`
+
           },
 
           body: JSON.stringify({
-            cuenta: cuenta,
+
             monto: Number(monto),
+
             sucursal: sucursal
+
           })
 
         }
@@ -233,19 +327,21 @@ function App() {
 
       if (respuesta.ok) {
 
-        consultarCuenta();
+        await consultarCuenta();
 
         setMonto('');
 
-        setMensaje(data.mensaje);
-
-        setTipoMensaje('success');
+        mostrarMensaje(
+          data.mensaje,
+          'success'
+        );
 
       } else {
 
-        setMensaje(data.mensaje);
-
-        setTipoMensaje('error');
+        mostrarMensaje(
+          data.mensaje,
+          'error'
+        );
 
       }
 
@@ -268,6 +364,9 @@ function App() {
   const transferir = async () => {
 
     try {
+
+      const token =
+        localStorage.getItem('token');
 
       if (!monto || monto <= 0) {
 
@@ -302,20 +401,27 @@ function App() {
       }
 
       const respuesta = await fetch(
-        'http://localhost:3000/api/transferencia',
+        apiUrl('/api/transferencia'),
         {
 
           method: 'POST',
 
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+
+            Authorization:
+              `Bearer ${token}`
+
           },
 
           body: JSON.stringify({
-            cuentaOrigen: cuenta,
+
             cuentaDestino: cuentaDestino,
+
             monto: Number(monto),
+
             sucursal: sucursal
+
           })
 
         }
@@ -325,21 +431,23 @@ function App() {
 
       if (respuesta.ok) {
 
-        consultarCuenta();
+        await consultarCuenta();
 
         setMonto('');
 
         setCuentaDestino('');
 
-        setMensaje(data.mensaje);
-
-        setTipoMensaje('success');
+        mostrarMensaje(
+          data.mensaje,
+          'success'
+        );
 
       } else {
 
-        setMensaje(data.mensaje);
-
-        setTipoMensaje('error');
+        mostrarMensaje(
+          data.mensaje,
+          'error'
+        );
 
       }
 
@@ -357,56 +465,322 @@ function App() {
 
   };
 
+  const actualizarPerfil = async () => {
+
+    try {
+
+      const respuesta = await fetch(
+        apiUrl('/api/perfil'),
+        {
+
+          method: 'PUT',
+
+          headers: {
+
+            'Content-Type': 'application/json',
+
+            Authorization:
+              `Bearer ${localStorage.getItem('token')}`
+
+          },
+
+          body: JSON.stringify({
+
+            nombre: nuevoNombre,
+
+            correo: nuevoCorreo
+
+          })
+
+        }
+
+      );
+
+      const data = await respuesta.json();
+
+      if (respuesta.ok) {
+
+        setMensaje(
+          data.mensaje
+        );
+
+        setTipoMensaje(
+          'success'
+        );
+
+        setTimeout(() => {
+
+          setMensaje('');
+
+          setTipoMensaje('');
+
+        }, 3000);
+
+        const usuarioActualizado = {
+
+          ...usuario,
+
+          nombre: nuevoNombre,
+
+          correo: nuevoCorreo
+
+        };
+
+        setUsuario(
+          usuarioActualizado
+        );
+
+        localStorage.setItem(
+
+          'usuario',
+
+          JSON.stringify(
+            usuarioActualizado
+          )
+
+        );
+
+      } else {
+
+        setMensaje(
+          data.mensaje
+        );
+
+        setTipoMensaje(
+          'error'
+        );
+
+        setTimeout(() => {
+
+          setMensaje('');
+
+          setTipoMensaje('');
+
+        }, 3000);
+
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  const cargarBeneficiarios = async () => {
+
+    try {
+
+      const respuesta = await fetch(
+        apiUrl('/api/beneficiarios'),
+
+        {
+
+          headers: {
+
+            Authorization:
+              `Bearer ${localStorage.getItem('token')}`
+
+          }
+
+        }
+
+      );
+
+      const data =
+        await respuesta.json();
+
+      setBeneficiarios(data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  const agregarBeneficiario = async () => {
+
+    try {
+
+      if (!alias || !cuentaBeneficiario) {
+
+        setMensaje(
+          'Completa todos los campos'
+        );
+
+        setTipoMensaje(
+          'error'
+        );
+
+        return;
+
+      }
+
+      const respuesta = await fetch(
+        apiUrl('/api/beneficiarios'),
+
+        {
+
+          method: 'POST',
+
+          headers: {
+
+            'Content-Type':
+              'application/json',
+
+            Authorization:
+              `Bearer ${localStorage.getItem('token')}`
+
+          },
+
+          body: JSON.stringify({
+
+            alias,
+
+            cuentaDestino:
+              cuentaBeneficiario
+
+          })
+
+        }
+
+      );
+
+      const data =
+        await respuesta.json();
+
+      if (respuesta.ok) {
+
+        setAlias('');
+
+        setCuentaBeneficiario('');
+
+        cargarBeneficiarios();
+
+        mostrarMensaje(
+          data.mensaje,
+          'success'
+        );
+
+      } else {
+
+        mostrarMensaje(
+          data.mensaje,
+          'error'
+        );
+
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  const eliminarBeneficiario = async (id) => {
+
+    try {
+
+      const respuesta = await fetch(
+        apiUrl(`/api/beneficiarios/${id}`),
+
+        {
+
+          method: 'DELETE',
+
+          headers: {
+
+            Authorization:
+              `Bearer ${localStorage.getItem('token')}`
+
+          }
+
+        }
+
+      );
+
+      const data =
+        await respuesta.json();
+
+      if (respuesta.ok) {
+
+        mostrarMensaje(
+          data.mensaje,
+          'success'
+        );
+
+        cargarBeneficiarios();
+
+      } else {
+
+        mostrarMensaje(
+          data.mensaje,
+          'error'
+        );
+
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
   // GRAFICA
 
-  const saldoHistorico = [];
+  const saldoHistorico =
 
-  if (datos && datos.transacciones) {
+    datos?.transacciones
+      ?.slice()
+      .reverse()
+      .map(
 
-    let saldoActual = datos.saldo;
+        movimiento =>
 
-    saldoHistorico.push(saldoActual);
+          movimiento.saldoResultante
 
-    const movimientosInvertidos =
-      [...datos.transacciones].reverse();
+      ) || [];
 
-    movimientosInvertidos.forEach((movimiento) => {
+  const totalMovimientos =
+    datos?.transacciones?.length || 0;
 
-      if (movimiento.tipo === 'deposito') {
-        saldoActual -= movimiento.monto;
-      }
+  const totalDepositos =
+    datos?.transacciones?.filter(
+      t => t.tipo === 'deposito'
+    ).length || 0;
 
-      if (movimiento.tipo === 'retiro') {
-        saldoActual += movimiento.monto;
-      }
+  const totalRetiros =
+    datos?.transacciones?.filter(
+      t => t.tipo === 'retiro'
+    ).length || 0;
 
-      if (movimiento.tipo === 'transferencia enviada') {
-        saldoActual += movimiento.monto;
-      }
-
-      if (movimiento.tipo === 'transferencia recibida') {
-        saldoActual -= movimiento.monto;
-      }
-
-      saldoHistorico.push(saldoActual);
-
-    });
-
-    saldoHistorico.reverse();
-
-  }
+  const totalTransferencias =
+    datos?.transacciones?.filter(
+      t =>
+        t.tipo === 'transferencia enviada' ||
+        t.tipo === 'transferencia recibida'
+    ).length || 0;
 
   const data = {
 
-    labels: datos
-      ? [
-          'Saldo Inicial',
-          ...datos.transacciones.map(
-            (_, index) =>
-              `Movimiento ${index + 1}`
-          )
-        ]
-      : [],
+    labels:
+
+      datos?.transacciones
+        ?.slice()
+        .reverse()
+        .map(
+
+          (_, index) =>
+
+            `Movimiento ${index + 1}`
+
+        ) || [],
 
     datasets: [
       {
@@ -433,11 +807,91 @@ function App() {
 
   };
 
+  if (!usuario) {
+
+    if (mostrarRegistro) {
+
+      return (
+
+        <Register
+          onCambiarLogin={() =>
+            setMostrarRegistro(false)
+          }
+        />
+
+      );
+
+    }
+
+    return (
+
+      <Login
+        onLogin={(usuarioLogueado) =>
+          setUsuario(usuarioLogueado)
+        }
+        onCambiarRegistro={() =>
+          setMostrarRegistro(true)
+        }
+      />
+
+    );
+
+  }
+
   return (
 
     <div className="container">
 
       <h1>Banco Nexus</h1>
+
+      {usuario && (
+
+        <div className="bienvenida">
+
+          <p>
+
+            Bienvenido, {usuario.nombre}
+
+          </p>
+
+          <p>
+
+            Correo: {usuario.correo}
+
+          </p>
+
+          <p>
+
+            Cuenta: {usuario.numeroCuenta}
+
+          </p>
+
+        </div>
+
+      )}
+
+      <button
+        className="logout-btn"
+        onClick={() => {
+
+          localStorage.removeItem('token');
+
+          localStorage.removeItem('usuario');
+
+          setMensaje('');
+
+          setTipoMensaje('');
+
+          setDatos(null);
+
+          setUsuario(null);
+
+        }}
+      >
+
+        Cerrar Sesión
+
+      </button>
 
       <p className="subtitle">
         Sistema Bancario Digital
@@ -453,54 +907,134 @@ function App() {
 
       )}
 
-      <div className="search-box">
-
-        <input
-          type="text"
-          placeholder="Número de cuenta"
-          value={cuenta}
-          onChange={(e) =>
-            setCuenta(e.target.value)
-          }
-        />
-
-        <button onClick={consultarCuenta}>
-          Consultar
-        </button>
-
-      </div>
-
       {datos && (
 
         <div className="card">
 
           <div className="info">
 
-            <div className="info-box">
+            <div className="estadisticas">
 
-              <h3>Cliente</h3>
+              <div className="stat-card">
 
-              <p>{datos.cliente}</p>
+                <h3>Movimientos</h3>
+
+                <p>{totalMovimientos}</p>
+
+              </div>
+
+              <div className="stat-card">
+
+                <h3>Depósitos</h3>
+
+                <p>{totalDepositos}</p>
+
+              </div>
+
+              <div className="stat-card">
+
+                <h3>Retiros</h3>
+
+                <p>{totalRetiros}</p>
+
+              </div>
+
+              <div className="stat-card">
+
+                <h3>Transferencias</h3>
+
+                <p>{totalTransferencias}</p>
+
+              </div>
 
             </div>
 
-            <div className="info-box">
+            <div className="resumen-cuenta">
 
-              <h3>Cuenta</h3>
+              <div className="resumen-card">
 
-              <p>{datos.cuenta}</p>
+                <h3>Cliente</h3>
+
+                <p>{datos.cliente}</p>
+
+              </div>
+
+              <div className="resumen-card">
+
+                <h3>Cuenta</h3>
+
+                <p>{datos.cuenta}</p>
+
+              </div>
+
+              <div className="resumen-card">
+
+                <h3>Saldo</h3>
+
+                <p>${datos.saldo}</p>
+
+              </div>
 
             </div>
 
-            <div className="info-box">
+            <button
+              className="btn-editar"
+              onClick={() =>
+                setMostrarPerfil(
+                  !mostrarPerfil
+                )
+              }
+            >
 
-              <h3>Saldo</h3>
+              {
+                mostrarPerfil
+                  ? 'Ocultar Perfil'
+                  : 'Editar Perfil'
+              }
 
-              <p>${datos.saldo}</p>
-
-            </div>
+            </button>
 
           </div>
+
+          {
+            mostrarPerfil && (
+
+              <div className="perfil-box">
+
+                <h2>Editar Perfil</h2>
+
+                <input
+                  type="text"
+                  value={nuevoNombre}
+                  onChange={(e) =>
+                    setNuevoNombre(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Nombre"
+                />
+
+                <input
+                  type="email"
+                  value={nuevoCorreo}
+                  onChange={(e) =>
+                    setNuevoCorreo(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Correo"
+                />
+
+                <button
+                  onClick={actualizarPerfil}
+                >
+                  Guardar Cambios
+                </button>
+
+              </div>
+
+            )
+          }
 
           <div className="actions">
 
@@ -552,14 +1086,53 @@ function App() {
               }
             />
 
-            <input
-              type="text"
-              placeholder="Cuenta destino"
+            <select
+
               value={cuentaDestino}
+
               onChange={(e) =>
-                setCuentaDestino(e.target.value)
+                setCuentaDestino(
+                  e.target.value
+                )
               }
-            />
+
+            >
+
+              <option value="">
+
+                Seleccionar beneficiario
+
+              </option>
+
+              {
+
+                beneficiarios.map(
+
+                  (b) => (
+
+                    <option
+
+                      key={b._id}
+
+                      value={b.cuentaDestino}
+
+                    >
+
+                      {b.alias}
+
+                      {' - '}
+
+                      {b.cuentaDestino}
+
+                    </option>
+
+                  )
+
+                )
+
+              }
+
+            </select>
 
             <button onClick={depositar}>
               Depositar
@@ -579,6 +1152,104 @@ function App() {
               </button>
 
             </div>
+
+          </div>
+
+          <div className="beneficiarios-box">
+
+            <h2>
+
+              Beneficiarios
+
+            </h2>
+
+            <input
+
+              type="text"
+
+              placeholder="Alias"
+
+              value={alias}
+
+              onChange={(e) =>
+                setAlias(
+                  e.target.value
+                )
+              }
+
+            />
+
+            <input
+
+              type="text"
+
+              placeholder="Cuenta destino"
+
+              value={cuentaBeneficiario}
+
+              onChange={(e) =>
+                setCuentaBeneficiario(
+                  e.target.value
+                )
+              }
+
+            />
+
+            <button
+              onClick={
+                agregarBeneficiario
+              }
+            >
+
+              Agregar Beneficiario
+
+            </button>
+
+            <ul>
+
+              {
+
+                beneficiarios.map(
+
+                  (b) => (
+
+                    <li key={b._id}>
+
+                      <span>
+
+                        {b.alias}
+
+                        {' - '}
+
+                        {b.cuentaDestino}
+
+                      </span>
+
+                      <button
+
+                        className="btn-eliminar-beneficiario"
+
+                        onClick={() =>
+                          eliminarBeneficiario(
+                            b._id
+                          )
+                        }
+
+                      >
+
+                        X
+
+                      </button>
+
+                    </li>
+
+                  )
+
+                )
+
+              }
+
+            </ul>
 
           </div>
 
@@ -609,7 +1280,13 @@ function App() {
 
                     <h3 className="movimiento-titulo">
 
-                      {movimiento.tipo.toUpperCase()}
+                      {
+                        movimiento.tipo === 'deposito'
+                          ? '🟢 DEPÓSITO'
+                          : movimiento.tipo === 'retiro'
+                            ? '🔴 RETIRO'
+                            : '🔵 TRANSFERENCIA'
+                      }
 
                     </h3>
 
@@ -645,9 +1322,43 @@ function App() {
 
                       {new Date(
                         movimiento.fecha
-                      ).toLocaleDateString()}
+                      ).toLocaleString()}
 
                     </p>
+
+                    {
+                      (
+                        movimiento.tipo === 'transferencia enviada' ||
+
+                        movimiento.tipo === 'transferencia recibida'
+                      ) && (
+
+                        <>
+
+                          <p>
+
+                            <strong>Cuenta origen:</strong>
+
+                            {' '}
+
+                            {movimiento.cuentaOrigen}
+
+                          </p>
+
+                          <p>
+
+                            <strong>Cuenta destino:</strong>
+
+                            {' '}
+
+                            {movimiento.cuentaDestino}
+
+                          </p>
+
+                        </>
+
+                      )
+                    }
 
                   </div>
 

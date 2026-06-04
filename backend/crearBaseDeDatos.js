@@ -1,6 +1,8 @@
 const { MongoClient } = require('mongodb');
 
-const uri = 'mongodb://127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/BancoNexus?replicaSet=rsBanco';
+require('dotenv').config();
+
+const uri = process.env.MONGO_URI;
 
 const client = new MongoClient(uri);
 
