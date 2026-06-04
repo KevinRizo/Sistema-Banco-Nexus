@@ -668,7 +668,6 @@ app.put('/api/perfil', verificarToken, async (req, res) => {
 
         }
         
-        console.log('Buscando correo duplicado...');
 
         const correoExistente =
             await db.collection('usuarios')
