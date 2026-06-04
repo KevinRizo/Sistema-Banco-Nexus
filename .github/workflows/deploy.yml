@@ -14,7 +14,7 @@ on:
 
 jobs:
 
-  deploy:
+  deploy-backend:
 
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
@@ -41,3 +41,36 @@ jobs:
             docker service update \
             --image kevinrp17/banco-backend:latest \
             banco_backend
+
+  deploy-frontend:
+
+    needs: deploy-backend
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Deploy Frontend
+
+        uses: appleboy/ssh-action@v1.0.3
+
+        with:
+
+          host: ${{ secrets.FRONTEND_HOST }}
+
+          username: ${{ secrets.FRONTEND_USER }}
+
+          key: ${{ secrets.FRONTEND_SSH_KEY }}
+
+          script: |
+
+            docker pull kevinrp17/banco-frontend:latest
+
+            docker stop banco-frontend || true
+
+            docker rm banco-frontend || true
+
+            docker run -d \
+              --name banco-frontend \
+              -p 80:3000 \
+              kevinrp17/banco-frontend:latest
