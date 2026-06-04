@@ -130,7 +130,7 @@ function App() {
 
     try {
 
-      if (!cuenta) {
+      if (!cuentaConsulta) {
 
         setMensaje('Ingresa un número de cuenta');
 
