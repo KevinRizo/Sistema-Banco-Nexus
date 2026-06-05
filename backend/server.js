@@ -88,12 +88,27 @@ async function registrarAuditoria(
 
 }
 
-function generarNumeroCuenta() {
+async function generarNumeroCuenta() {
+
+    const resultado =
+        await db.collection('counters')
+            .findOneAndUpdate(
+
+                { _id: 'clientes' },
+
+                { $inc: { secuencia: 1 } },
+
+                {
+                    returnDocument: 'after',
+                    upsert: true
+                }
+
+            );
+
+    console.log(resultado);
 
     const secuencia =
-        Math.floor(
-            Math.random() * 1000000
-        )
+        resultado.secuencia
             .toString()
             .padStart(6, '0');
 
@@ -290,7 +305,7 @@ app.post('/api/auth/register', async (req, res) => {
             await bcrypt.hash(password, 10);
 
         const numeroCuenta =
-            generarNumeroCuenta();
+            await generarNumeroCuenta();
 
         await usuarios.insertOne({
 
@@ -667,7 +682,7 @@ app.put('/api/perfil', verificarToken, async (req, res) => {
             });
 
         }
-        
+
 
         const correoExistente =
             await db.collection('usuarios')
@@ -683,7 +698,7 @@ app.put('/api/perfil', verificarToken, async (req, res) => {
 
                 });
 
-        
+
 
         console.log(
             'Resultado correoExistente:',
@@ -1658,7 +1673,20 @@ app.post('/api/transferencia', verificarToken, async (req, res) => {
 
 });
 
+// HEALTH CHECK
+
+app.get('/health', (req, res) => {
+
+    res.status(200).json({
+
+        status: 'OK'
+
+    });
+
+});
+
 // SERVIDOR
+
 
 app.listen(3000, () => {
 
